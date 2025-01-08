@@ -18,8 +18,4 @@ FONT RECOGNIZER MODEL
 import pandas as pd
 import numpy as np
 import seaborn as sns
-import matplotlib.pyplot as plt 
-import gradio as gr
-
-from utils import preprocess_image
-from model import load_model
+import matplotlib.pyplot as plt
