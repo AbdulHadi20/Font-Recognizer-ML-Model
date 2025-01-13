@@ -14,66 +14,73 @@ FONT RECOGNIZER MODEL
 # importing all of the required modules and libraries
 
 import os                                          # used for systeme file operations
-import requests                                    # used for handling urls (HTTPS requests)
 import numpy as np                                 # used for performing mathematical operations
+import pandas as pd                                # used for data manipulation and analysis
+import seaborn as sns                              # used for data visualization
 import matplotlib.pyplot as plt                    # used for plotting visual graphs  
-  
-from PIL import Image                              # (Python Imaging Library) used for image processing
-from io import BytesIO                             # used to handle binary data   
-from model import FontRecognizerModel              # to import the class from the model.py file
+import tensorflow as tf                            # used for building and training the model (deep learning, neural networks)
 
-# creating a function for processing the image uploaded
-def image_processor(input_image):
+from tensorflow.keras import layers, models                                               # used for building the layers of the model
+from PIL import Image                                                                     # used for image processing
 
-    # using the try and except block to catch any exceptions that may occur
-    try:
-        if isinstance(input_image, str): # image is fetched from url and loaded via Image.open if the input image is a string
-            user_response = requests.get(input_image) 
-            user_image = Image.open(BytesIO(user_response.content)) 
+from sklearn.model_selection import train_test_split                                      # used for splitting the data into training and testing sets
+from sklearn.preprocessing import LabelEncoder                                            # used for encoding the labels
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix       # used for evaluating the model
 
-        else:  # image is loaded via Image.open if the input image is a file object
-            user_image = Image.open(input_image)
-            
-        # image preprocessing,
-        user_image = user_image.convert('RGB')            # image conversion to RGB  
-        user_image = user_image.resize((224, 224))        # image resizing to 224x224 pixels
-        user_image_array = np.array(user_image)           # image conversion to array
-        return user_image_array
+############ DATA LOADING AND PREPROCESSING ############
 
-    except:          # error handling incase of exceptions, will return None if true
-        return None
+# creating a class 
+class FontRecognizerModel:
 
-# creating a function to predict the font in the image
-def img_font_prediction(input_image, input_url, model):
-    # creating a condition to check if the input image is a url
-    if input_url and input_url.strip():                          # using the .strip() method to remove any whitespace in the url
-        input_image = input_url.strip()
+    # creating a constructor
+    def __init__(self, pathOfDataset, imgSize = (128, 128)):
+        self.pathOfDataset = pathOfDataset
+        self.imgSize = imgSize
+        self.model = None
+        self.LabelEncoder = LabelEncoder()
+        self.history = None
 
-    # processing the image by calling the image processor function
-    processed_image = image_processor(input_image)
+    # creating a mehtod to load and preproccess the dataset
+    def loadDataset(self):
+        processed_images = []       # creating an empty list to store the processed images
+        font_labels = []            # creating an empty list to store the font labels
 
-    # condition if the processed image is none, to display an error message to the user
-    if processed_image is None:
-        return "\n Unexpected Error: Please Try Again!"
+        # creating a loop to iterate through the dataset folder
+        for nameOfFont in os.listdir(self.pathOfDataset):                           # os.listdir returns the files/folders in the main directory
+            fontPath = os.path.join(self.pathOfDataset, nameOfFont)                 # os.join combines the path of the main directory with the name of the font
+
+            # creating a condition to make sure that only the subfodlers are processed
+            if os.path.isdir(fontPath):
+
+                # creating a nested loop to make sure to iterate through the subfolders accurately
+                for fontImage in os.listdir(fontPath):
+                    # checking if each image file is a .jpg file, then processing the images
+                    
+                    if fontImage.endswith('.jpg'):
+                        imgPath = os.path.join(fontPath, fontImage)
+
+                        # using try except block to handle any exceptions that may occur
+                        try: 
+                            img = Image.open(imgPath)                # opening the image file
+                            img = img.resize(self.imgSize)           # resizing the image to the specified size
+                            imgArray = np.array(img) / 255.0         # converting the image into an array
+
+                            processed_images.append(imgArray)        # appending the processed image to the list
+                            font_labels.append(nameOfFont)           # appending the font label to the list
+
+                        except Exception as e:
+                            print(f"Error processing image: {imgPath}: {e}")
+
+            # converting the lists into numpy arrays
+            pot1 = np.array(processed_images)
+            self.LabelEncoder.fit(font_labels)
+            pot2 = self.LabelEncoder.transform(font_labels)
+
+            # splitting the data into training and testing sets
+            return train_test_split(pot1, pot2, test_size = 0.2, random_state = 42)
     
-    #
-    return model.img_font_prediction(processed_image)
 
-# creating a function to initialize the model
-def main():
-    # inializing the model
-    model = FontRecognizerModel()
 
-    # condition to check if the trained model exists
-    if not os.path.exits('font_rec_model.h5'):
-        print('\n Training the model...') 
-        model.buildtrain_model('data') # path of the dataset file
-        model.save_model()
-        print('\n Model training completed!')
+############ BUILDING THE CNN MODEL ############
 
-    else:
-        print('\n Loading the trained model...')
-        model.load_model()
 
-if __name__ == '__main__':
-    main()
