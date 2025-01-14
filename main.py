@@ -78,9 +78,46 @@ class FontRecognizerModel:
 
             # splitting the data into training and testing sets
             return train_test_split(pot1, pot2, test_size = 0.2, random_state = 42)
-    
+            
+ ############ BUILDING THE CNN MODEL ############
 
+    # creating a function to build the CNN model
+    def modelBuild(self, numFonts):
+        
+        # using the Sequential API to build the model, a stack of layers in a linear pipeline
+        model = models.Sequential(
+            [
+                layers.Conv2D(32, (3, 3), activation = 'relu', input_shape = (*self.imgSize + 3,)),              # fist convolutional layer, 32 filters, 3x3 kernel size
+                layers.MaxPooling2D((2, 2)),                                                                     # max pooling layer, 2x2 pool size
+                layers.Conv2D(64, (3, 3), activation = 'relu'),                                                  # second convolutional layer, 64 filters, 3x3 kernel size
+                layers.MaxPooling2D((2, 2)),                                                                     # max pooling layer, 2x2 pool size
+                layers.Conv2D(64, (3, 3), activation = 'relu'),                                                  # third convolutional layer, 128 filters, 3x3 kernel size
+                layers.Flatten(),                                                                                # flattening the input
+                layers.Dense(64, activation = 'relu'),                                                           # first dense layer, 64 neurons
+                layers.Dropout(0.5),                                                                             # dropout layer, 0.5 dropout rate
+                layers.Dense(numFonts, activation = 'softmax')                                                   # output layer, number of neurons equal to the number of fonts
+                ]
+        )              
+        
+        # compiling the model using the adam optimizer, sparse categorical crossentropy loss function
+        model.compile(optimizer = 'adam', loss = 'sparse_categorical_crossentropy', metrics = ['accuracy'])     
+        return model 
+        
+        
+ ############ TRAINING THE MODEL ############
+    
+    # creating a function to train the model and save training history
+    def modelTrain(self, epochs = 10, batch_size = 32):
+        
+        # splitting the data into training and testing sets
+        pot1_train, pot1_test, pot2_train, pot2_test = self.loadDataset()
+
+
+
+    
+    
+    
 
 ############ BUILDING THE CNN MODEL ############
 
-
+    
