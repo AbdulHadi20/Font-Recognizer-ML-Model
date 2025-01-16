@@ -191,12 +191,3 @@ class FontRecognizerModel:
     def loadTrainedModel(self, modelPathTrain = 'Font-Recognizer-Model.h5'):
         self.model = models.loadModel(modelPathTrain)
  
-
-
-    
-    
-    
-
-############ BUILDING THE CNN MODEL ############
-
-    

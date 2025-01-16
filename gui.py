@@ -27,10 +27,13 @@ def trainModel():
         results = f'Training Completed Successfully! \n Accuracy Score: {accuracyScore:.2%} \n'
         results += f'Classification Report: \n {classReport}'
 
-        return (results, 'Confusion-Matrix.png')
+        return results, 'Confusion-Matrix.png'
     
     except Exception as e:
-        print(f'An Error Occurred: {e}')
+        errorMsg = f'An Error Occurred: {e}'
+        print(errorMsg)
+
+        return errorMsg, None
 
 # creating a model to predict the font of the uploaded image
 def predFont(img):
@@ -64,10 +67,10 @@ with gr.Blocks(title='Font Recognizer Model') as modelInterface:
     with gr.Tab('Train Model'):
         trainBtn = gr.Button('Train Model')
         outputTxt = gr.Textbox(label='Training Results')
-        conMatrix = gr.Image(label='Confusion Matrix')
+        conMatrix = gr.Image(label='Confusion Matrix', show_label=True)
 
 
-        trainBtn.click(trainModel, outputs= [outputTxt, conMatrix])
+        trainBtn.click(fn=trainModel, outputs= [outputTxt, conMatrix])
 
     with gr.Tab('Predict Font'):
 
