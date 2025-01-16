@@ -112,6 +112,85 @@ class FontRecognizerModel:
         # splitting the data into training and testing sets
         pot1_train, pot1_test, pot2_train, pot2_test = self.loadDataset()
 
+        # creating a condition to check if the model has been built
+        if self.model is None:
+            self.modelBuild(len(self.LabelEncoder.classes_))
+
+
+        # training the model using the training data
+        self.history = self.model.fit(
+            pot1_train, pot2_train, 
+            epochs = epochs, 
+            batch_size = batch_size, 
+            validation_data = (pot1_test, pot2_test))
+            
+        # returns the evaluation of the model    
+        return self.evaluateModel(pot1_test, pot2_test)
+
+############ EVALUATING THE MODEL ############
+
+    # creating a function to evaluate the model
+    def evaluateModel(self, pot1_test, pot2_test):
+
+        pred = self.model.predict(pot1_test)                    # takes the images from test and gives the predictions from the model
+        pot2_pred = np.argmax(pred, axis = 1)                   # takes the prediction and returns the font with the highest probability
+
+        # calculating the accuracy of the model
+        accuracyScore = accuracy_score(pot2_test, pot2_pred)    
+        print(f"Accuracy: {accuracyScore}")
+
+        # creating a classification report
+        classReport = classification_report(pot2_test, pot2_pred, target_names = self.LabelEncoder.classes_)
+        print(classReport)
+
+        # creating a confusion matrix
+        conMax = confusion_matrix(pot2_test, pot2_pred)
+        print(conMax)
+
+        ############# PLOTTING GRAPHS FOR THE MODEL ##################
+
+        # generating the plot for the confusion matrix of the model
+        plt.figure(figsize=(20, 20))
+        sns.heatmap(conMax, annot=True, fmt='d', cmap='Blues', xticklabels=self.LabelEncoder.classes_, yticklabels=self.LabelEncoder.classes_)
+        plt.title('Confusion Matrix')
+        plt.xlabel('Predicted Fonts')
+        plt.ylabel('Actual Fonts')
+        plt.tight_layout()
+        plt.savefig('Confusion-Matrix.png')
+        plt.close()
+
+
+
+    # creating a function to make predictions for the model
+    def predict(self, imgPath):
+
+        # using try except blocks to handle any exceptions that may occur
+        try: 
+
+            # opening the image file
+            img = Image.open(imgPath).convert('RGB')
+            img = img.resize(self.imgSize)
+            imgArray = np.array(img) / 255.0
+            imgArray = np.expand_dims(imgArray, axis = 0)         # adding an extra dimension to the array to make it compatible with the model
+
+            # making the predictions
+            pred = self.model.predict(imgArray)
+            predClass = self.LabelEncoder.classes_[np.argmax(pred, axis = 1)]
+            modelConficence = np.max(pred) * 100
+
+            return predClass, modelConficence
+
+        except Exception as e:
+            return f"Error processing image: {imgPath}: {e}"
+
+    # creating a function to save the trained model
+    def saveTrainedModel(self, modelPathTrain = 'Font-Recognizer-Model.h5'):
+        self.model.save(modelPathTrain)
+
+    # creating a function to load the trained model
+    def loadTrainedModel(self, modelPathTrain = 'Font-Recognizer-Model.h5'):
+        self.model = models.loadModel(modelPathTrain)
+ 
 
 
     
