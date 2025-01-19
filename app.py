@@ -15,7 +15,6 @@ FONT RECOGNIZER MODEL
 
 import os                                                              # used for systeme file operations
 import numpy as np                                                     # used for performing mathematical operations
-import pandas as pd                                                    # used for data manipulation and analysis
 import gradio as gr                                                    # used for creating the GUI
 import seaborn as sns                                                  # used for data visualization    
 import tensorflow as tf                                                # used for building and training the model (deep learning, neural networks)
