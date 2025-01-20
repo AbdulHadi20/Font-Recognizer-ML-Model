@@ -115,7 +115,7 @@ for nameofFont in fonts:
             except Exception as e: 
                 print(f'\n Error Loading {pathOfImage}: {e}')
 
-    print(f'\n {numImages} loaded from {nameofFont} subfloder.')      
+    print(f'\n {numImages} image files loaded from {nameofFont} subfloder.')      
 
                 
 ############### TRAINING & TESTING THE MODEL ####################
